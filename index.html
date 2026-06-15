@@ -49,6 +49,8 @@ button{border:0;border-radius:14px;padding:13px 16px;font-size:15px;font-weight:
         <label>Сайт <input id="site" value="www.tricompany.ru"></label>
         <label>Ссылка «Подобрать решение» <input id="solutionUrl" value="https://tricompany.ru/"></label>
         <label>Ссылка на дайджест <input id="digestUrl" value="https://tricompany.ru/"></label>
+        <label class="checkbox"><input id="showTelegram" type="checkbox"> Показывать Telegram</label>
+        <label class="checkbox"><input id="showWhatsapp" type="checkbox"> Показывать WhatsApp</label>
         <label class="checkbox"><input id="showDigest" type="checkbox"> Показывать блок дайджеста</label>
       </div>
       <div class="actions">
@@ -60,7 +62,7 @@ button{border:0;border-radius:14px;padding:13px 16px;font-size:15px;font-weight:
     <div class="panel">
       <div class="panel-head">
         <h2>Превью подписи</h2>
-        <p>Версия full mobile-safe: все смыслы сохранены, но сетка не ломается в Gmail mobile.</p>
+        <p>Симметричная full mobile-safe версия: факты, CTA и будущий дайджест сохранены.</p>
       </div>
       <div class="preview-wrap">
         <div id="signature" class="copy-target"></div>
@@ -81,23 +83,41 @@ function tgHref(s){s=String(s||'').trim();if(s.startsWith('@'))return'https://t.
 function waHref(s){return 'https://wa.me/'+String(s||'').replace(/\D/g,'');}
 function img(name,w,h,alt=''){return `<img src="${ASSET_BASE}${name}" width="${w}" height="${h}" alt="${alt}" style="display:block;border:0;outline:none;text-decoration:none;">`;}
 
+function contactItem(icon, text, href, color){
+ return `<td style="vertical-align:middle;padding:0 0 0 0;">${img(icon,22,22,'')}</td>
+<td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:${color};white-space:nowrap;padding:0 13px 0 5px;">
+<a href="${href}" style="color:${color};text-decoration:none;">${text}</a></td>`;
+}
+
 function render(){
  const name=esc($('name').value), position=esc($('position').value), email=esc($('email').value), phone=esc($('phone').value);
  const telegram=esc($('telegram').value), whatsapp=esc($('whatsapp').value), site=esc($('site').value);
  const solutionUrl=esc(siteHref($('solutionUrl').value)), digestUrl=esc(siteHref($('digestUrl').value));
- const showDigest=$('showDigest').checked;
+ const showDigest=$('showDigest').checked, showTelegram=$('showTelegram').checked, showWhatsapp=$('showWhatsapp').checked;
+
+ let socialRow = '';
+ if(showTelegram || showWhatsapp){
+   socialRow = `<tr><td style="padding:0 0 9px 0;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto;">
+      <tr>
+        ${showTelegram ? contactItem('icon-telegram.png', telegram, tgHref(telegram), '#111111') : ''}
+        ${showWhatsapp ? contactItem('icon-whatsapp.png', whatsapp, waHref(whatsapp), '#111111') : ''}
+      </tr>
+    </table>
+  </td></tr>`;
+ }
 
  const digestBlock = showDigest ? `
-  <tr><td style="padding:10px 0 0 0;">
+  <tr><td style="padding:9px 0 0 0;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
       <tr>
-        <td style="background:#fff2f3;border-radius:8px;padding:11px 12px;">
+        <td style="background:#fff2f3;border-radius:8px;padding:10px 12px;">
           <a href="${digestUrl}" style="display:block;text-decoration:none;color:#111111;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
               <tr>
                 <td width="34" style="vertical-align:middle;">${img('icon-digest.png',28,28,'')}</td>
-                <td style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:18px;color:#111111;font-weight:700;">
-                  Дайджест TRI<br><span style="font-weight:400;color:#111111;">новые продукты, кейсы и материалы</span>
+                <td style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:18px;color:#111111;font-weight:700;text-align:left;">
+                  Дайджест TRI <span style="font-weight:400;color:#111111;">— новые продукты, кейсы и материалы</span>
                 </td>
                 <td width="20" align="right" style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:22px;color:#E31E24;">→</td>
               </tr>
@@ -114,11 +134,11 @@ function render(){
     <td style="padding:0 0 13px 0;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
         <tr>
-          <td width="205" style="width:205px;vertical-align:middle;padding:0 18px 0 0;">
-            ${img('tri-logo.png',190,56,'TRI')}
+          <td width="204" style="width:204px;vertical-align:middle;padding:0 19px 0 0;text-align:left;">
+            ${img('tri-logo.png',178,52,'TRI')}
           </td>
           <td width="1" style="width:1px;background:#cfcfcf;font-size:0;line-height:0;">&nbsp;</td>
-          <td style="vertical-align:middle;padding:0 0 0 20px;">
+          <td width="355" style="width:355px;vertical-align:middle;padding:0 0 0 19px;text-align:left;">
             <div style="font-family:Arial,Helvetica,sans-serif;font-size:21px;line-height:25px;font-weight:700;color:#111111;">${name}</div>
             <div style="margin-top:5px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#777777;">
               ${position} <span style="color:#111111;padding:0 7px;">|</span> <span style="color:#E31E24;font-weight:700;letter-spacing:1.5px;">TRI</span>
@@ -137,36 +157,36 @@ function render(){
   <tr><td style="height:1px;background:#d7d7d7;font-size:0;line-height:0;">&nbsp;</td></tr>
 
   <tr>
-    <td style="padding:12px 0;">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+    <td style="padding:11px 0;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;table-layout:fixed;">
         <tr>
-          <td width="33%" style="vertical-align:top;padding:0 10px 0 0;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <td width="33.33%" style="width:33.33%;vertical-align:top;text-align:center;padding:0 8px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto;">
               <tr>
-                <td width="31" style="vertical-align:top;padding-top:1px;">${img('icon-flask.png',26,26,'')}</td>
-                <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:16px;color:#111111;vertical-align:top;">
+                <td width="30" style="vertical-align:top;padding-top:1px;">${img('icon-flask.png',26,26,'')}</td>
+                <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:16px;color:#111111;vertical-align:top;text-align:left;padding-left:6px;">
                   <span style="font-size:13px;color:#E31E24;font-weight:700;white-space:nowrap;">500+</span> разработанных<br>продуктов
                 </td>
               </tr>
             </table>
           </td>
           <td width="1" style="width:1px;background:#d7d7d7;font-size:0;line-height:0;">&nbsp;</td>
-          <td width="30%" style="vertical-align:top;padding:0 10px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <td width="33.33%" style="width:33.33%;vertical-align:top;text-align:center;padding:0 8px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto;">
               <tr>
-                <td width="31" style="vertical-align:top;padding-top:1px;">${img('icon-globe.png',26,26,'')}</td>
-                <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:16px;color:#111111;vertical-align:top;">
+                <td width="30" style="vertical-align:top;padding-top:1px;">${img('icon-globe.png',26,26,'')}</td>
+                <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:16px;color:#111111;vertical-align:top;text-align:left;padding-left:6px;">
                   <span style="font-size:13px;color:#E31E24;font-weight:700;white-space:nowrap;">10+</span> отраслей<br>применения
                 </td>
               </tr>
             </table>
           </td>
           <td width="1" style="width:1px;background:#d7d7d7;font-size:0;line-height:0;">&nbsp;</td>
-          <td width="37%" style="vertical-align:top;padding:0 0 0 10px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <td width="33.33%" style="width:33.33%;vertical-align:top;text-align:center;padding:0 8px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto;">
               <tr>
-                <td width="31" style="vertical-align:top;padding-top:1px;">${img('icon-factory.png',26,26,'')}</td>
-                <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:16px;color:#111111;vertical-align:top;">
+                <td width="30" style="vertical-align:top;padding-top:1px;">${img('icon-factory.png',26,26,'')}</td>
+                <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:16px;color:#111111;vertical-align:top;text-align:left;padding-left:6px;">
                   Собственная лаборатория<br>и производство полного цикла
                 </td>
               </tr>
@@ -179,15 +199,15 @@ function render(){
 
   <tr><td style="height:1px;background:#d7d7d7;font-size:0;line-height:0;">&nbsp;</td></tr>
 
-  <tr><td style="padding:10px 0 0 0;">
+  <tr><td style="padding:9px 0 0 0;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
       <tr>
-        <td style="background:#f7f7f7;border-radius:8px;padding:11px 12px;">
+        <td style="background:#f7f7f7;border-radius:8px;padding:10px 12px;">
           <a href="${solutionUrl}" style="display:block;text-decoration:none;color:#111111;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
               <tr>
                 <td width="34" style="vertical-align:middle;">${img('icon-target.png',28,28,'')}</td>
-                <td style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:18px;color:#111111;font-weight:700;">
+                <td style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:18px;color:#111111;font-weight:700;text-align:left;">
                   Подобрать решение <span style="font-weight:400;">под вашу задачу</span>
                 </td>
                 <td width="20" align="right" style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:22px;color:#E31E24;">→</td>
@@ -202,38 +222,16 @@ function render(){
   ${digestBlock}
 
   <tr><td style="padding:12px 0 9px 0;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto;">
       <tr>
-        <td style="vertical-align:middle;">${img('icon-phone.png',22,22,'')}</td>
-        <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#111111;white-space:nowrap;padding:0 10px 0 5px;">
-          <a href="${phoneHref(phone)}" style="color:#111111;text-decoration:none;">${phone}</a>
-        </td>
-        <td style="vertical-align:middle;">${img('icon-mail.png',22,22,'')}</td>
-        <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#111111;white-space:nowrap;padding:0 10px 0 5px;">
-          <a href="${mailHref(email)}" style="color:#111111;text-decoration:none;">${email}</a>
-        </td>
-        <td style="vertical-align:middle;">${img('icon-site.png',22,22,'')}</td>
-        <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#E31E24;white-space:nowrap;padding:0 0 0 5px;">
-          <a href="${siteHref(site)}" style="color:#E31E24;text-decoration:none;">${site}</a>
-        </td>
+        ${contactItem('icon-phone.png', phone, phoneHref(phone), '#111111')}
+        ${contactItem('icon-mail.png', email, mailHref(email), '#111111')}
+        ${contactItem('icon-site.png', site, siteHref(site), '#E31E24')}
       </tr>
     </table>
   </td></tr>
 
-  <tr><td style="padding:0 0 9px 0;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
-      <tr>
-        <td style="vertical-align:middle;">${img('icon-telegram.png',22,22,'')}</td>
-        <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#111111;white-space:nowrap;padding:0 12px 0 5px;">
-          <a href="${tgHref(telegram)}" style="color:#111111;text-decoration:none;">${telegram}</a>
-        </td>
-        <td style="vertical-align:middle;">${img('icon-whatsapp.png',22,22,'')}</td>
-        <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#111111;white-space:nowrap;padding:0 0 0 5px;">
-          <a href="${waHref(whatsapp)}" style="color:#111111;text-decoration:none;">${whatsapp}</a>
-        </td>
-      </tr>
-    </table>
-  </td></tr>
+  ${socialRow}
 
   <tr><td style="height:2px;background:#E31E24;font-size:0;line-height:0;">&nbsp;</td></tr>
 </table>`;
