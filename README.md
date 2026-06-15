@@ -1,4 +1,4 @@
-# TRI Signature Generator — v2
+# TRI Signature Generator — v3
 
 Симметричная full mobile-safe версия генератора подписи TRI.
 
@@ -12,3 +12,6 @@
 ## Публикация
 
 Загрузите `index.html`, `README.md` и папку `assets` в корень репозитория GitHub Pages.
+
+
+v3: выравнивание текста фактов по центру и более симметричная формулировка третьего факта.
