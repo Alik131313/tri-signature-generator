@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TRI — генератор email-подписи</title>
+  <style>
+    :root{
+      --tri-red:#E31E24;
+      --black:#0b0d10;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#d7d7d7;
+      --soft:#f7f7f8;
+      --soft-red:#fff2f3;
+      --bg:#f4f5f7;
+      --white:#fff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1260px;margin:0 auto;padding:28px}
+    .top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:22px}
+    h1{margin:0 0 8px;font-size:34px;line-height:1.06;color:var(--black);letter-spacing:-.03em}
+    .lead{margin:0;color:var(--muted);font-size:16px;max-width:760px;line-height:1.5}
+    .pill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:10px 14px;color:var(--muted);font-size:13px;white-space:nowrap}
+    .grid{display:grid;grid-template-columns:390px 1fr;gap:22px;align-items:start}
+    .panel{background:#fff;border:1px solid #e5e7eb;border-radius:20px;box-shadow:0 12px 34px rgba(15,23,42,.06);overflow:hidden}
+    .panel-h{padding:20px 22px;border-bottom:1px solid #edf0f3;background:#fff}
+    .panel-h h2{margin:0;font-size:18px;color:var(--black)}
+    .panel-h p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.45}
+    .form{padding:20px 22px;display:grid;gap:14px}
+    label{display:grid;gap:7px;font-size:13px;font-weight:700;color:#374151}
+    input,select,textarea{width:100%;border:1px solid #d9dde4;border-radius:12px;padding:12px 13px;font:inherit;font-size:14px;color:var(--text);outline:none;background:#fff}
+    input:focus,select:focus,textarea:focus{border-color:var(--tri-red);box-shadow:0 0 0 3px rgba(227,30,36,.11)}
+    textarea{min-height:72px;resize:vertical;line-height:1.4}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .checkrow{display:grid;gap:10px;margin-top:2px}
+    .check{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#4b5563;font-weight:600;line-height:1.35}
+    .check input{width:16px;height:16px;margin-top:1px;accent-color:var(--tri-red)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;padding:0 22px 22px}
+    button{border:none;border-radius:13px;padding:13px 15px;font:inherit;font-weight:800;cursor:pointer;transition:.18s ease;background:var(--tri-red);color:#fff}
+    button:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(227,30,36,.22)}
+    button.secondary{background:#111827;color:#fff}
+    button.ghost{background:#fff;color:#111827;border:1px solid #d9dde4}
+    button.ghost:hover{box-shadow:0 8px 18px rgba(15,23,42,.08)}
+    .preview-box{padding:22px;background:#fff}
+    .preview-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:13px}
+    .signature-frame{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:20px;overflow:auto}
+    .notice{margin-top:14px;border-radius:14px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:12px 14px;font-size:13px;line-height:1.45}
+    .codebox{margin-top:16px;background:#0b1020;color:#e5e7eb;border-radius:16px;padding:16px;display:none;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45;max-height:360px;overflow:auto}
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);opacity:0;background:#111827;color:#fff;border-radius:999px;padding:12px 16px;font-weight:700;font-size:14px;transition:.24s ease;box-shadow:0 15px 35px rgba(0,0,0,.2);z-index:99}
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    @media (max-width:960px){.grid{grid-template-columns:1fr}.top{display:block}.pill{margin-top:14px}.wrap{padding:18px}.row{grid-template-columns:1fr}}
+  
+/* Patch: hide the top title/intro block, leave only the generator itself */
+.header, .hero, .topbar, .page-header, .intro {
+    display: none !important;
+}
+body {
+    padding-top: 0 !important;
+}
+main, .wrap, .container {
+    margin-top: 0 !important;
+}
+
+/* Patch: remove internal warning/notes for public colleague-facing version */
+.warning, .alert, .notice, .note, .hint, .important, .internal-note {
+    display: none !important;
+}
+</style>
+</head>
+<body spellcheck="false">
+  <div class="wrap">
+<div class="pill">v1 · без дайджеста · HTML-подпись</div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-h">
+          <h2>Данные сотрудника</h2>
+          <p>Меняйте поля — подпись обновляется автоматически.</p>
+        </div>
+        <div class="form">
+          <label>Имя и фамилия
+            <input id="name" value="Имя Фамилия" placeholder="Например: Иван Петров">
+          </label>
+          <label>Должность
+            <input id="position" value="Должность" placeholder="Например: Руководитель направления">
+          </label>
+          <div class="row">
+            <label>Телефон
+              <input id="phone" value="+7 (495) 211-33-31" placeholder="+7 ...">
+            </label>
+            <label>WhatsApp
+              <input id="whatsapp" value="+7 (495) 211-33-31" placeholder="+7 ...">
+            </label>
+          </div>
+          <label>Email
+            <input id="email" value="info@tricompany.ru" placeholder="name@tricompany.ru">
+          </label>
+          <div class="row">
+            <label>Сайт
+              <input id="site" value="www.tricompany.ru" placeholder="www.tricompany.ru">
+            </label>
+            <label>Telegram
+              <input id="telegram" value="@tri_company" placeholder="@username">
+            </label>
+          </div>
+          <label>CTA в подписи
+            <select id="ctaMode">
+              <option value="solution" selected>Подобрать решение под вашу задачу</option>
+              <option value="site">Перейти на сайт TRI</option>
+              <option value="contact">Связаться с командой TRI</option>
+              <option value="none">Без CTA-блока</option>
+            </select>
+          </label>
+          <label>Ссылка CTA
+            <input id="ctaUrl" value="https://tricompany.ru/" placeholder="https://...">
+          </label>
+          <div class="checkrow">
+            <label class="check"><input type="checkbox" id="showStats" checked>Показывать блок с фактами: 500+ продуктов / 10+ отраслей / лаборатория</label>
+            <label class="check"><input type="checkbox" id="showSocials" checked>Показывать Telegram и WhatsApp</label>
+            <label class="check"><input type="checkbox" id="compact">Компактная версия для длинных переписок</label>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="copyBtn">Скопировать подпись</button>
+          <button class="secondary" id="downloadBtn">Скачать HTML</button>
+          <button class="ghost" id="codeBtn">Показать код</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h">
+          <h2>Превью подписи</h2>
+          <p>Именно этот блок нужно копировать и вставлять в настройки подписи почты.</p>
+        </div>
+        <div class="preview-box">
+          <div class="preview-title"><span>Готовая подпись</span><span id="status">обновлено</span></div>
+          <div class="signature-frame">
+            <div id="signaturePreview"></div>
+          </div>
+<pre class="codebox" id="codebox"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast">Подпись скопирована</div>
+
+<script>
+const ASSET_BASE = new URL('./assets/', window.location.href).href;
+const logoData = ASSET_BASE + 'tri-logo.png';
+const icon = {
+  flask: ASSET_BASE + 'icon-flask.svg',
+  globe: ASSET_BASE + 'icon-globe.svg',
+  factory: ASSET_BASE + 'icon-factory.svg',
+  phone: ASSET_BASE + 'icon-phone.svg',
+  mail: ASSET_BASE + 'icon-mail.svg',
+  web: ASSET_BASE + 'icon-web.svg',
+  tg: ASSET_BASE + 'icon-tg.svg',
+  wa: ASSET_BASE + 'icon-wa.svg',
+  target: ASSET_BASE + 'icon-target.svg',
+};
+function v(id){ return document.getElementById(id).value.trim(); }
+function checked(id){ return document.getElementById(id).checked; }
+function phoneHref(s){ return 'tel:' + s.replace(/[^+\d]/g,''); }
+function mailHref(s){ return 'mailto:' + s; }
+function siteHref(s){ return /^https?:\/\//i.test(s) ? s : 'https://' + s.replace(/^\/+/, ''); }
+function tgHref(s){ let x=s.replace(/^@/,''); return 'https://t.me/' + x; }
+function waHref(s){ return 'https://wa.me/' + s.replace(/[^\d]/g,''); }
+function ctaText(){
+  const mode = v('ctaMode');
+  if(mode==='site') return ['Перейти на сайт TRI','узнать больше о компании'];
+  if(mode==='contact') return ['Связаться с TRI','обсудить задачу'];
+  if(mode==='none') return null;
+  return ['Подобрать решение','под вашу задачу'];
+}
+function contactItem(src, text, href, red=false){
+  return `<td style="padding:0 18px 0 0; vertical-align:middle; white-space:nowrap; font-family:Arial,Helvetica,sans-serif; font-size:15px; color:#111111;"><a href="${href}" style="text-decoration:none; color:${red?'#E31E24':'#111111'};"><img src="${src}" width="32" height="32" style="vertical-align:middle; border:0; margin-right:8px;">${text}</a></td>`;
+}
+function signatureHtml(){
+  const name = v('name') || 'Имя Фамилия';
+  const pos = v('position') || 'Должность';
+  const phone = v('phone') || '+7 (495) 211-33-31';
+  const email = v('email') || 'info@tricompany.ru';
+  const site = v('site') || 'www.tricompany.ru';
+  const telegram = v('telegram') || '@tri_company';
+  const whatsapp = v('whatsapp') || phone;
+  const compact = checked('compact');
+  const showStats = checked('showStats') && !compact;
+  const showSocials = checked('showSocials');
+  const cta = ctaText();
+  const ctaBlock = cta && !compact ? `
+    <tr><td style="padding:20px 0 22px 0; border-top:1px solid #d7d7d7; border-bottom:1px solid #d7d7d7;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
+        <td width="48%" style="background:#f7f7f8; border-radius:10px; padding:14px 18px; font-family:Arial,Helvetica,sans-serif; vertical-align:middle;">
+          <a href="${siteHref(v('ctaUrl') || site)}" style="display:block; text-decoration:none; color:#111111;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
+              <td width="54"><img src="${icon.target}" width="48" height="48" style="display:block; border:0;"></td>
+              <td style="padding-left:12px;"><div style="font-size:18px; line-height:22px; font-weight:700; color:#111111;">${cta[0]}</div><div style="font-size:16px; line-height:20px; color:#111111;">${cta[1]}</div></td>
+              <td width="28" style="font-size:34px; color:#E31E24; font-weight:300; text-align:right;">→</td>
+            </tr></table>
+          </a>
+        </td>
+        <td width="4%"></td>
+        <td width="48%" style="background:#fff2f3; border-radius:10px; padding:14px 18px; font-family:Arial,Helvetica,sans-serif; vertical-align:middle;">
+          <a href="${siteHref(site)}" style="display:block; text-decoration:none; color:#111111;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
+              <td width="54"><img src="${icon.web}" width="48" height="48" style="display:block; border:0;"></td>
+              <td style="padding-left:12px;"><div style="font-size:18px; line-height:22px; font-weight:700; color:#111111;">TRI онлайн</div><div style="font-size:16px; line-height:20px; color:#111111;">www.tricompany.ru</div></td>
+              <td width="28" style="font-size:34px; color:#E31E24; font-weight:300; text-align:right;">→</td>
+            </tr></table>
+          </a>
+        </td>
+      </tr></table>
+    </td></tr>` : '';
+  const statsBlock = showStats ? `
+    <tr><td style="padding:18px 0; border-top:1px solid #d7d7d7;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse; table-layout:fixed;">
+        <tr>
+          <td width="31%" style="vertical-align:middle; padding:0 24px 0 0; font-family:Arial,Helvetica,sans-serif;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td width="58" style="vertical-align:middle;"><img src="${icon.flask}" width="48" height="48" style="display:block; border:0;"></td>
+                <td style="vertical-align:middle; font-size:17px; line-height:23px; color:#111111;">
+                  <span style="font-size:18px; color:#E31E24; font-weight:700; white-space:nowrap;">500+</span> разработанных<br>продуктов
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td width="1" style="width:1px; background:#d7d7d7; font-size:0; line-height:0;">&nbsp;</td>
+          <td width="31%" style="vertical-align:middle; padding:0 24px; font-family:Arial,Helvetica,sans-serif;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td width="58" style="vertical-align:middle;"><img src="${icon.globe}" width="48" height="48" style="display:block; border:0;"></td>
+                <td style="vertical-align:middle; font-size:17px; line-height:23px; color:#111111;">
+                  <span style="font-size:18px; color:#E31E24; font-weight:700; white-space:nowrap;">10+</span> отраслей<br>применения
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td width="1" style="width:1px; background:#d7d7d7; font-size:0; line-height:0;">&nbsp;</td>
+          <td width="37%" style="vertical-align:middle; padding:0 0 0 24px; font-family:Arial,Helvetica,sans-serif;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td width="58" style="vertical-align:middle;"><img src="${icon.factory}" width="48" height="48" style="display:block; border:0;"></td>
+                <td style="vertical-align:middle; font-size:17px; line-height:23px; color:#111111;">
+                  Собственная лаборатория<br>и производство полного цикла
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td></tr>` : '';
+  const contacts = [
+    contactItem(icon.phone, phone, phoneHref(phone)),
+    contactItem(icon.mail, email, mailHref(email)),
+    contactItem(icon.web, site, siteHref(site), true),
+  ];
+  if(showSocials && !compact){ contacts.push(contactItem(icon.tg, telegram, tgHref(telegram))); contacts.push(contactItem(icon.wa, whatsapp, waHref(whatsapp))); }
+  const top = compact ? `
+    <tr><td style="padding:0 0 14px 0; font-family:Arial,Helvetica,sans-serif;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td><img src="${logoData}" width="170" style="display:block; border:0;"></td>
+        <td style="padding-left:18px; font-family:Arial,Helvetica,sans-serif;">
+          <div style="font-size:22px; font-weight:700; line-height:26px; color:#111111;">${name}</div>
+          <div style="font-size:16px; color:#777777; line-height:22px;">${pos} &nbsp; | &nbsp; <span style="color:#E31E24; font-weight:700; letter-spacing:2px;">TRI</span></div>
+        </td>
+      </tr></table>
+    </td></tr>` : `
+    <tr><td style="padding:0 0 20px 0;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
+        <td width="290" style="vertical-align:middle; padding-right:26px;"><img src="${logoData}" width="280" style="display:block; border:0;"></td>
+        <td width="1" style="background:#cfcfcf;"></td>
+        <td style="vertical-align:middle; padding-left:32px; font-family:Arial,Helvetica,sans-serif;">
+          <div style="font-size:30px; line-height:34px; font-weight:700; color:#111111;">${name}</div>
+          <div style="font-size:19px; line-height:28px; color:#777777; margin-top:6px;">${pos} &nbsp; | &nbsp; <span style="color:#E31E24; font-weight:700; letter-spacing:3px;">TRI</span></div>
+          <div style="font-size:18px; line-height:27px; color:#111111; margin-top:18px; max-width:560px;">Российский разработчик и производитель клеевых систем,<br>герметиков, компаундов и покрытий</div>
+        </td>
+      </tr></table>
+    </td></tr>`;
+  return `<!-- TRI email signature -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="900" style="width:900px; max-width:900px; font-family:Arial,Helvetica,sans-serif; color:#111111; background:#ffffff; border-collapse:collapse;">
+  ${top}
+  ${statsBlock}
+  ${ctaBlock}
+  <tr><td style="padding:18px 0 12px 0; border-bottom:2px solid #E31E24; font-family:Arial,Helvetica,sans-serif;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      ${contacts.join('<td width="1" style="background:#d7d7d7;"></td>')}
+    </tr></table>
+  </td></tr>
+</table>`;
+}
+function render(){
+  const html = signatureHtml();
+  document.getElementById('signaturePreview').innerHTML = html;
+  document.getElementById('codebox').textContent = html;
+  document.getElementById('status').textContent = 'обновлено ' + new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+}
+async function copySignature(){
+  const html = signatureHtml();
+  const plain = `${v('name')}\n${v('position')} | TRI\n${v('phone')}\n${v('email')}\n${v('site')}`;
+  try{
+    if(window.ClipboardItem){
+      const item = new ClipboardItem({
+        'text/html': new Blob([html], {type:'text/html'}),
+        'text/plain': new Blob([plain], {type:'text/plain'})
+      });
+      await navigator.clipboard.write([item]);
+    } else {
+      const range = document.createRange();
+      range.selectNode(document.getElementById('signaturePreview'));
+      window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+      document.execCommand('copy'); window.getSelection().removeAllRanges();
+    }
+    toast('Подпись скопирована');
+  }catch(e){
+    const range = document.createRange();
+    range.selectNode(document.getElementById('signaturePreview'));
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+    document.execCommand('copy'); window.getSelection().removeAllRanges();
+    toast('Скопировано через выделение');
+  }
+}
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1800);
+}
+function downloadHtml(){
+  const blob = new Blob([signatureHtml()], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'tri-email-signature.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+document.querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener('input', render));
+document.querySelectorAll('input[type="checkbox"]').forEach(el=>el.addEventListener('change', render));
+document.getElementById('copyBtn').addEventListener('click', copySignature);
+document.getElementById('downloadBtn').addEventListener('click', downloadHtml);
+document.getElementById('codeBtn').addEventListener('click', ()=>{
+  const b=document.getElementById('codebox'); b.style.display = b.style.display==='block' ? 'none' : 'block';
+});
+render();
+</script>
+</body>
+</html>
